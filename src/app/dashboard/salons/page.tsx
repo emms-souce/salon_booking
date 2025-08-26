@@ -12,7 +12,7 @@ import { getUserSalons, updateSalonStatus } from "@/features/salons/actions/crea
 import { getSalonServices } from "@/features/salons/actions/service-management"
 import { toast } from "sonner"
 import { Plus, Settings, Eye, EyeOff, Edit, PlusCircle } from "lucide-react"
-import ImageWithFallback from "@/components/shared/ImageWithFallback"
+import Image from "next/image"
 
 interface Salon {
   id: string
@@ -96,14 +96,14 @@ export default function DashboardSalonsPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Mes salons</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Mes salons</h1>
               <p className="mt-2 text-gray-600">
                 Gérez vos salons de coiffure et leurs services
               </p>
             </div>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/dashboard/salons/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Ajouter un salon
@@ -135,74 +135,81 @@ export default function DashboardSalonsPage() {
           <div className="grid grid-cols-1 gap-6">
             {salons.map((salon) => (
               <Card key={salon.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <ImageWithFallback
-                        src={salon.imageUrl}
+                <CardContent className="p-4 sm:p-6">
+                  {/* En-tête avec image et infos principales */}
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div className="flex items-start gap-4">
+                      <Image
+                        src={salon.imageUrl || "/placeholder-salon.jpg"}
                         alt={salon.name}
                         width={80}
                         height={80}
-                        type="salon"
-                        className="rounded-lg"
+                        className="rounded-lg object-cover flex-shrink-0"
                       />
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
                           {salon.name}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 break-words">
                           {salon.address}, {salon.city}
                         </p>
                         <p className="text-sm text-gray-600">
                           {salon.phone}
                         </p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <Badge variant="outline">
-                            {salon.services.length} services
-                          </Badge>
-                          <Badge variant="outline">
-                            {salon._count.bookings} réservations
-                          </Badge>
-                          <Badge variant="outline">
-                            {salon._count.reviews} avis
-                          </Badge>
-                          <Badge 
-                            variant={salon.isActive ? "default" : "secondary"}
-                            className={salon.isActive ? "bg-green-100 text-green-800" : ""}
-                          >
-                            {salon.isActive ? "Actif" : "Inactif"}
-                          </Badge>
-                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-2">
+                    {/* Switch statut - aligné à droite sur desktop, en dessous sur mobile */}
+                    <div className="flex items-center justify-between sm:justify-end sm:flex-col sm:items-end gap-2">
+                      <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">Statut:</span>
                         <Switch
                           checked={salon.isActive}
                           onCheckedChange={(checked) => handleToggleStatus(salon.id, checked)}
                         />
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/salons/${salon.id}/edit`}>
-                          <Edit className="h-4 w-4 mr-1" />
-                          Modifier
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/salons/${salon.id}/services`}>
-                          <Settings className="h-4 w-4 mr-1" />
-                          Services
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/salons/${salon.id}`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Voir
-                        </Link>
-                      </Button>
+                      <Badge 
+                        variant={salon.isActive ? "default" : "secondary"}
+                        className={salon.isActive ? "bg-green-100 text-green-800" : ""}
+                      >
+                        {salon.isActive ? "Actif" : "Inactif"}
+                      </Badge>
                     </div>
+                  </div>
+                  
+                  {/* Badges statistiques */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <Badge variant="outline" className="text-xs">
+                      {salon.services.length} services
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {salon._count.bookings} réservations
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {salon._count.reviews} avis
+                    </Badge>
+                  </div>
+                  
+                  {/* Boutons d'action */}
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
+                      <Link href={`/dashboard/salons/${salon.id}/edit`}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Modifier
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
+                      <Link href={`/dashboard/salons/${salon.id}/services`}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Services
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
+                      <Link href={`/salons/${salon.id}`}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Voir
+                      </Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getAuthSession } from "@/lib/auth-helpers"
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,7 +8,7 @@ export async function GET(request: NextRequest) {
     const salonId = searchParams.get("salonId")
     const category = searchParams.get("category")
 
-    const where: any = { isActive: true }
+    const where: { isActive: boolean; salonId?: string; category?: string } = { isActive: true }
     
     if (salonId) {
       where.salonId = salonId
@@ -45,6 +46,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Vérifier l'authentification
+    const session = await getAuthSession(request)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+    }
+    const user = session.user;
+
     const body = await request.json()
     const { name, description, price, duration, category, salonId, features, image } = body
 
@@ -56,6 +64,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Vérifier que l'utilisateur est bien le propriétaire du salon
+    const salon = await prisma.salon.findUnique({
+      where: { id: salonId },
+    })
+
+    if (!salon) {
+      return NextResponse.json({ error: "Salon non trouvé" }, { status: 404 })
+    }
+
+    if (salon.ownerId !== user.id) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
+    }
+
     const service = await prisma.service.create({
       data: {
         name,
@@ -64,8 +85,7 @@ export async function POST(request: NextRequest) {
         duration: parseInt(duration),
         category,
         salonId,
-        features: features || [],
-        image: image || null,
+        isActive: true,
       },
       include: {
         salon: {

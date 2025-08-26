@@ -1,15 +1,16 @@
 'use client'
 
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { authClient } from "@/lib/better-auth-client"
 import { BetterAuthUser } from "@/types/auth"
 
-interface AuthUser extends BetterAuthUser {}
+type AuthUser = BetterAuthUser
 
 export function useAuth() {
   const router = useRouter()
+  const pathname = usePathname()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,7 +18,7 @@ export function useAuth() {
   const { data: session, isPending: isLoadingAuth } = authClient.useSession()
   const user = session?.user as AuthUser | undefined
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, callbackUrl?: string) => {
     setIsLoading(true)
     setError(null)
 
@@ -33,12 +34,30 @@ export function useAuth() {
         return { success: false, error: errorMessage }
       }
 
+      // Attendre que la session soit mise à jour
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Rafraîchir manuellement la session
+      await authClient.getSession()
+      
       toast.success("Connexion réussie")
-      router.push("/dashboard")
+      
+      // Utiliser un délai pour s'assurer que la session est bien mise à jour
+      setTimeout(() => {
+        const redirectUrl = callbackUrl || "/dashboard"
+        
+        // Si on est sur une page d'authentification, forcer une redirection complète
+        if (pathname.startsWith('/auth/')) {
+          window.location.href = redirectUrl
+        } else {
+          router.push(redirectUrl)
+        }
+      }, 200)
+      
       return { success: true }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription"
-      console.error("Erreur d'inscription:", err)
+      const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue lors de la connexion"
+      console.error("Erreur de connexion:", err)
       toast.error(errorMessage)
       return { success: false, error: errorMessage }
     } finally {

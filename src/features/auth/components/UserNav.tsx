@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Settings, LogOut, LayoutDashboard } from "lucide-react"
+import { User, Settings, LogOut, LayoutDashboard, Calendar, Building2 } from "lucide-react"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 
 export function UserNav() {
@@ -32,7 +32,7 @@ export function UserNav() {
           <Link href="/auth/login">Se connecter</Link>
         </Button>
         <Button size="sm" asChild className="w-full sm:w-auto justify-center">
-          <Link href="/auth/register">S'inscrire</Link>
+          <Link href="/auth/register">S&apos;inscrire</Link>
         </Button>
       </div>
     )
@@ -66,6 +66,18 @@ export function UserNav() {
           <Link href="/dashboard" className="cursor-pointer">
             <LayoutDashboard className="mr-2 h-4 w-4" />
             <span>Tableau de bord</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/bookings" className="cursor-pointer">
+            <Calendar className="mr-2 h-4 w-4" />
+            <span>Mes Réservations</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/salons" className="cursor-pointer">
+            <Building2 className="mr-2 h-4 w-4" />
+            <span>Mes Salons</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/features/auth/hooks/useAuth"
-import { getSalonServices, createService, updateService, deleteService } from "@/features/salons/actions/service-management"
+import { getSalonServices, createSalonService, updateSalonService, deleteService } from "@/features/salons/actions/service-management"
 import { toast } from "sonner"
 import { Plus, Edit, Trash2, PlusCircle } from "lucide-react"
 import {
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -30,6 +31,7 @@ const serviceSchema = z.object({
   description: z.string().min(1, "La description est requise"),
   price: z.number().min(0, "Le prix doit être positif"),
   duration: z.number().min(15, "La durée minimale est 15 minutes"),
+  category: z.string().min(1, "La catégorie est requise"),
 })
 
 type ServiceFormData = z.infer<typeof serviceSchema>
@@ -40,6 +42,7 @@ interface Service {
   description: string
   price: number
   duration: number
+  category: string
   salonId: string
   createdAt: Date
 }
@@ -63,6 +66,7 @@ export default function SalonServicesPage() {
       description: "",
       price: 0,
       duration: 30,
+      category: "haircut",
     },
   })
 
@@ -91,13 +95,13 @@ export default function SalonServicesPage() {
     try {
       let result
       if (editingService) {
-        result = await updateService(editingService.id, data)
+        result = await updateSalonService(editingService.id, data)
       } else {
-        result = await createService(salonId, data)
+        result = await createSalonService(salonId, data)
       }
 
       if (result.success) {
-        toast.success(result.message)
+        toast.success(result.message || "Opération réussie")
         setOpen(false)
         setEditingService(null)
         form.reset()
@@ -135,6 +139,7 @@ export default function SalonServicesPage() {
       description: service.description,
       price: service.price,
       duration: service.duration,
+      category: service.category,
     })
     setOpen(true)
   }
@@ -218,7 +223,11 @@ export default function SalonServicesPage() {
                       id="price"
                       type="number"
                       min="0"
-                      {...form.register("price", { valueAsNumber: true })}
+                      value={form.watch("price") || ""}
+                      onChange={(e) => {
+                        const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
+                        form.setValue("price", isNaN(value) ? 0 : value)
+                      }}
                     />
                     {form.formState.errors.price && (
                       <p className="text-sm text-red-600">
@@ -233,11 +242,39 @@ export default function SalonServicesPage() {
                       type="number"
                       min="15"
                       step="15"
-                      {...form.register("duration", { valueAsNumber: true })}
+                      value={form.watch("duration") || ""}
+                      onChange={(e) => {
+                        const value = e.target.value === "" ? 30 : parseInt(e.target.value)
+                        form.setValue("duration", isNaN(value) ? 30 : value)
+                      }}
                     />
                     {form.formState.errors.duration && (
                       <p className="text-sm text-red-600">
                         {form.formState.errors.duration.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Catégorie</Label>
+                    <Select
+                      value={form.watch("category")}
+                      onValueChange={(value) => form.setValue("category", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="haircut">Coupe de cheveux</SelectItem>
+                        <SelectItem value="coloring">Coloration</SelectItem>
+                        <SelectItem value="styling">Coiffage</SelectItem>
+                        <SelectItem value="treatment">Soin capillaire</SelectItem>
+                        <SelectItem value="braids">Tresses</SelectItem>
+                        <SelectItem value="makeup">Maquillage</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.category && (
+                      <p className="text-sm text-red-600">
+                        {form.formState.errors.category.message}
                       </p>
                     )}
                   </div>

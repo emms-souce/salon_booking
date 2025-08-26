@@ -11,11 +11,64 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useBookings } from "@/features/bookings/hooks/use-bookings"
 import { useParams } from "next/navigation"
 
+interface BookingWithDetails {
+  id: string
+  status: string
+  date: string | Date
+  startTime?: string | Date
+  endTime?: string | Date
+  notes?: string | null
+  totalPrice: number
+  service?: {
+    name: string
+  }
+  user?: {
+    name?: string
+    email: string
+  }
+}
+
 export default function SalonBookingsPage() {
   const params = useParams()
   const salonId = params.id as string
   const { bookings, loading, updateBookingStatus } = useBookings({ salonId })
   const [activeTab, setActiveTab] = useState("pending")
+
+  // Fonction pour formater l'heure de manière plus lisible
+  const formatTime = (timeValue: string | Date) => {
+    if (!timeValue) {
+      return 'Non défini'
+    }
+    
+    let timeString: string
+    if (timeValue instanceof Date) {
+      timeString = timeValue.toTimeString().slice(0, 5)
+    } else {
+      timeString = timeValue
+    }
+    
+    if (timeString === '00:00') {
+      return 'Non défini'
+    }
+    
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours)
+    const min = minutes || '00'
+    
+    return `${hour}h${min !== '00' ? min : ''}`
+  }
+
+  const formatTimeRange = (startTime?: string | Date, endTime?: string | Date) => {
+    if (!startTime && !endTime) {
+      return 'Horaire à confirmer'
+    }
+    
+    if (startTime && endTime) {
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`
+    }
+    
+    return formatTime(startTime || endTime || '')
+  }
 
   const pendingBookings = bookings.filter((booking) => booking.status === "PENDING")
   const confirmedBookings = bookings.filter((booking) => booking.status === "CONFIRMED")
@@ -56,7 +109,7 @@ export default function SalonBookingsPage() {
     await updateBookingStatus(bookingId, status)
   }
 
-  const BookingCard = ({ booking }: { booking: any }) => (
+  const BookingCard = ({ booking }: { booking: BookingWithDetails }) => (
     <Card key={booking.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
@@ -79,10 +132,10 @@ export default function SalonBookingsPage() {
               {format(new Date(booking.date), "EEEE dd MMMM yyyy", { locale: fr })}
             </span>
           </div>
-          <div className="flex items-center text-sm">
-            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>
-              {booking.startTime} - {booking.endTime}
+          <div className="flex items-center text-sm bg-green-50 p-2 rounded-md">
+            <Clock className="h-4 w-4 mr-2 text-green-600" />
+            <span className="font-medium text-green-900">
+              {formatTimeRange(booking.startTime, booking.endTime)}
             </span>
           </div>
           <div className="flex items-center text-sm">

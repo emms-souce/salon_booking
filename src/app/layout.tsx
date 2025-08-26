@@ -4,6 +4,7 @@ import "./globals.css"
 import Link from "next/link"
 import { AuthProvider } from "@/features/auth/components/AuthProvider"
 import { Navbar } from "@/components/shared/Navbar"
+import { AuthLink } from "@/components/shared/AuthLink"
 import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -52,7 +53,7 @@ export default function RootLayout({
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-4">Pour les salons</h4>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  <li><Link href="/salons/register" className="hover:text-black">Inscrire mon salon</Link></li>
+                  <li><AuthLink href="/dashboard/salons/create" className="hover:text-black">Inscrire mon salon</AuthLink></li>
                   <li><Link href="/owner/dashboard" className="hover:text-black">Tableau de bord</Link></li>
                   <li><Link href="/owner/pricing" className="hover:text-black">Tarifs</Link></li>
                 </ul>

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import ImageWithFallback from "@/components/shared/ImageWithFallback"
+import Image from "next/image"
 
 export interface SalonCardProps {
   id: string
@@ -36,12 +36,11 @@ export function SalonCard({
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="aspect-[16/9] relative rounded-lg overflow-hidden">
-        <ImageWithFallback
-          src={imageUrl}
+        <Image
+          src={imageUrl || "/placeholder-salon.jpg"}
           alt={name}
           fill
-          type="salon"
-          className="rounded-lg"
+          className="rounded-lg object-cover"
         />
       </div>
       

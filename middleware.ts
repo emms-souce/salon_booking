@@ -36,7 +36,10 @@ export async function middleware(request: NextRequest) {
 
     // Si c'est une route d'authentification et l'utilisateur est connecté, rediriger vers dashboard
     if (isAuthRoute && session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      // Vérifier s'il y a un callbackUrl
+      const callbackUrl = request.nextUrl.searchParams.get('callbackUrl')
+      const redirectUrl = callbackUrl || '/dashboard'
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
     }
   }
 

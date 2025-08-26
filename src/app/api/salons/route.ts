@@ -9,10 +9,23 @@ export async function GET(request: NextRequest) {
     const ownerId = searchParams.get("ownerId")
 
     if (ownerId) {
+      // Vérifier l'authentification pour récupérer les salons d'un propriétaire spécifique
+      const session = await getAuthSession(request)
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+      }
+      
+      // S'assurer que l'utilisateur ne peut récupérer que ses propres salons
+      if (session.user.id !== ownerId) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
+      }
+      
       const salons = await prisma.salon.findMany({
         where: { ownerId },
         include: {
-          services: true,
+          services: {
+            where: { isActive: true },
+          },
           _count: {
             select: {
               bookings: true,

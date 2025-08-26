@@ -47,16 +47,47 @@ const bookingFormSchema = z.object({
 
 type BookingFormValues = z.infer<typeof bookingFormSchema>
 
+interface BookingResult {
+  id: string
+  date: Date | string
+  startTime: Date | string
+  endTime?: Date | string
+  status?: string
+}
+
 interface BookingFormProps {
   salonId: string
   service: Service
-  onSuccess?: (booking: any) => void
+  onSuccess?: (booking: BookingResult) => void
   onCancel?: () => void
 }
 
 export function BookingForm({ salonId, service, onSuccess, onCancel }: BookingFormProps) {
   const { createBooking, checkAvailability, availability, loading } = useBookings()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
+
+  // Fonction pour formater l'heure de manière lisible
+  const formatTimeForDisplay = (timeValue: string) => {
+    if (!timeValue) return ''
+    
+    // Si c'est une date ISO, extraire juste l'heure
+    if (timeValue.includes('T')) {
+      const date = new Date(timeValue)
+      const hours = date.getHours()
+      const minutes = date.getMinutes()
+      return `${hours}h${minutes !== 0 ? minutes.toString().padStart(2, '0') : ''}`
+    }
+    
+    // Si c'est déjà au format HH:MM, on le convertit
+    if (timeValue.includes(':')) {
+      const [hours, minutes] = timeValue.split(':')
+      const hour = parseInt(hours)
+      const min = parseInt(minutes)
+      return `${hour}h${min !== 0 ? min.toString().padStart(2, '0') : ''}`
+    }
+    
+    return timeValue
+  }
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -162,7 +193,7 @@ export function BookingForm({ salonId, service, onSuccess, onCancel }: BookingFo
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une heure">
-                      {field.value ? `À ${field.value}` : "Sélectionner une heure"}
+                      {field.value ? `À ${formatTimeForDisplay(field.value)}` : "Sélectionner une heure"}
                     </SelectValue>
                   </SelectTrigger>
                 </FormControl>
@@ -172,7 +203,7 @@ export function BookingForm({ salonId, service, onSuccess, onCancel }: BookingFo
                       <div className="flex items-center">
                         <Clock className="mr-2 h-4 w-4" />
                         <span>
-                          {slot.startTime} - {slot.endTime}
+                          {formatTimeForDisplay(slot.startTime)} - {formatTimeForDisplay(slot.endTime)}
                         </span>
                       </div>
                     </SelectItem>

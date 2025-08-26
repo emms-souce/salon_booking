@@ -1,24 +1,43 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/better-auth"
 import { prisma } from "@/lib/prisma"
 import { getAuthSession } from "@/lib/auth-helpers"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
   try {
-    const session = await getAuthSession(request)
-    if (!session) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
-    }
-    const user = session.user;
+    const salonId = params.id
 
     const salon = await prisma.salon.findUnique({
-      where: { id },
+      where: { 
+        id: salonId,
+        isActive: true 
+      },
       include: {
-        services: true,
+        services: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            duration: true,
+            category: true,
+          },
+        },
+        reviews: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
         _count: {
           select: {
             bookings: true,
@@ -30,11 +49,6 @@ export async function GET(
 
     if (!salon) {
       return NextResponse.json({ error: "Salon non trouvé" }, { status: 404 })
-    }
-
-    // Vérifier que l'utilisateur est bien le propriétaire
-    if (salon.ownerId !== user.id) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 })
     }
 
     return NextResponse.json(salon)

@@ -20,8 +20,8 @@ const salonFormSchema = z.object({
   address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères"),
   city: z.string().min(2, "La ville doit contenir au moins 2 caractères"),
   phone: z.string().regex(/^\+?[\d\s-()]+$/, "Numéro de téléphone invalide"),
-  email: z.string().email("Email invalide").optional(),
-  imageUrl: z.string().url("URL d'image invalide").optional(),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  imageUrl: z.string().url("URL d'image invalide").optional().or(z.literal("")),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
 })
@@ -198,19 +198,20 @@ export function CreateSalonForm() {
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL de l'image</FormLabel>
+                  <FormLabel>Photo du salon (optionnel)</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <ImageIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input 
-                        placeholder="https://example.com/image.jpg" 
+                        placeholder="https://example.com/photo-salon.jpg" 
                         className="pl-10"
                         {...field} 
                       />
                     </div>
                   </FormControl>
                   <FormDescription>
-                    URL d'une photo de votre salon (optionnel)
+                    URL d&apos;une photo attractive de votre salon. Laissez vide si vous n&apos;en avez pas - 
+                    vous pourrez l&apos;ajouter plus tard depuis votre tableau de bord.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

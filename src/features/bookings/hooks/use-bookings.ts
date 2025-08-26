@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { bookingService } from "../services/booking-service"
 import { Booking } from "@/features/salons/types"
@@ -41,6 +41,13 @@ export function useBookings(options: UseBookingsOptions = {}) {
       setLoading(false)
     }
   }, [user, salonId])
+
+  // Auto-fetch des réservations au chargement
+  useEffect(() => {
+    if (autoFetch && user) {
+      fetchBookings()
+    }
+  }, [autoFetch, user, fetchBookings])
 
   const createBooking = useCallback(async (
     salonId: string,

@@ -11,10 +11,70 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useBookings } from "@/features/bookings/hooks/use-bookings"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 
+interface BookingWithDetails {
+  id: string
+  status: string
+  date: string | Date
+  startTime?: string | Date
+  endTime?: string | Date
+  notes?: string | null
+  totalPrice: number
+  service?: {
+    name: string
+  }
+  salon?: {
+    name: string
+    address: string
+  }
+  user?: {
+    name?: string
+    email: string
+  }
+}
+
 export default function BookingsDashboard() {
   const { user } = useAuth()
-  const { bookings, loading, updateBookingStatus, cancelBooking } = useBookings()
+  const { bookings, loading, updateBookingStatus, cancelBooking, fetchBookings } = useBookings()
   const [activeTab, setActiveTab] = useState("upcoming")
+
+  // Debug: afficher le nombre de réservations
+  console.log('Debug: Nombre de réservations chargées:', bookings.length)
+
+  // Fonction pour formater l'heure de manière plus lisible
+  const formatTime = (timeValue: string | Date) => {
+    if (!timeValue) {
+      return 'Non défini'
+    }
+    
+    let timeString: string
+    if (timeValue instanceof Date) {
+      timeString = timeValue.toTimeString().slice(0, 5)
+    } else {
+      timeString = timeValue
+    }
+    
+    if (timeString === '00:00') {
+      return 'Non défini'
+    }
+    
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours)
+    const min = minutes || '00'
+    
+    return `${hour}h${min !== '00' ? min : ''}`
+  }
+
+  const formatTimeRange = (startTime?: string | Date, endTime?: string | Date) => {
+    if (!startTime && !endTime) {
+      return 'Horaire à confirmer'
+    }
+    
+    if (startTime && endTime) {
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`
+    }
+    
+    return formatTime(startTime || endTime || '')
+  }
 
   const upcomingBookings = bookings.filter(
     (booking) => booking.status === "CONFIRMED" || booking.status === "PENDING"
@@ -63,7 +123,7 @@ export default function BookingsDashboard() {
     await updateBookingStatus(bookingId, status)
   }
 
-  const BookingCard = ({ booking }: { booking: any }) => (
+  const BookingCard = ({ booking }: { booking: BookingWithDetails }) => (
     <Card key={booking.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
@@ -86,10 +146,10 @@ export default function BookingsDashboard() {
               {format(new Date(booking.date), "EEEE dd MMMM yyyy", { locale: fr })}
             </span>
           </div>
-          <div className="flex items-center text-sm">
-            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>
-              {booking.startTime} - {booking.endTime}
+          <div className="flex items-center text-sm bg-blue-50 p-2 rounded-md">
+            <Clock className="h-4 w-4 mr-2 text-blue-600" />
+            <span className="font-medium text-blue-900">
+              {formatTimeRange(booking.startTime, booking.endTime)}
             </span>
           </div>
           <div className="flex items-center text-sm">
@@ -157,7 +217,7 @@ export default function BookingsDashboard() {
           <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">Aucune réservation</h2>
           <p className="text-muted-foreground">
-            Vous n'avez aucune réservation pour le moment.
+            Vous n&apos;avez aucune réservation pour le moment.
           </p>
         </div>
       </div>
@@ -167,10 +227,21 @@ export default function BookingsDashboard() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Mes Réservations</h1>
-        <p className="text-muted-foreground">
-          Gérez toutes vos réservations en un seul endroit
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Mes Réservations</h1>
+            <p className="text-muted-foreground">
+              Gérez toutes vos réservations en un seul endroit
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={fetchBookings}
+            disabled={loading}
+          >
+            {loading ? "Chargement..." : "Actualiser"}
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

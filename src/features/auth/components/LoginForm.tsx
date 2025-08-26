@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 export function LoginForm() {
@@ -14,6 +14,8 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const { login, isLoading } = useAuth()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
 
   const validateForm = () => {
     const errors: Record<string, string> = {}
@@ -41,7 +43,7 @@ export function LoginForm() {
       return
     }
     
-    await login(email, password)
+    await login(email, password, callbackUrl || undefined)
   }
 
   return (
@@ -95,7 +97,7 @@ export function LoginForm() {
         
         <div className="mt-4 text-center text-sm">
           <Link href="/auth/register" className="text-black hover:underline">
-            Pas encore de compte ? S'inscrire
+            Pas encore de compte ? S&apos;inscrire
           </Link>
         </div>
       </CardContent>

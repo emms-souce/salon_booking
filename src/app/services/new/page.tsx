@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import { CreateServiceInput, ServiceCategory } from "@/features/services/types"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
 const categories = [
   { value: "haircut", label: "Coupe de cheveux" },
@@ -21,21 +22,64 @@ const categories = [
   { value: "makeup", label: "Maquillage" },
 ]
 
+interface Salon {
+  id: string
+  name: string
+  city: string
+}
+
 export default function NewServicePage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [salons, setSalons] = useState<Salon[]>([])
+  const [loadingSalons, setLoadingSalons] = useState(true)
   const [formData, setFormData] = useState<CreateServiceInput>({
     name: "",
     description: "",
     price: 0,
     duration: 30,
     category: "haircut",
-    salonId: "1", // À adapter selon votre logique d'authentification
+    salonId: "",
     features: [],
   })
 
+  useEffect(() => {
+    if (!user) {
+      router.push("/auth/login")
+      return
+    }
+    loadUserSalons()
+  }, [user, router])
+
+  async function loadUserSalons() {
+    try {
+      const response = await fetch(`/api/salons?ownerId=${user?.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setSalons(data)
+        if (data.length === 1) {
+          // Si l'utilisateur n'a qu'un salon, le sélectionner automatiquement
+          setFormData(prev => ({ ...prev, salonId: data[0].id }))
+        }
+      } else {
+        toast.error("Impossible de charger vos salons")
+      }
+    } catch (error) {
+      toast.error("Erreur lors du chargement des salons")
+    } finally {
+      setLoadingSalons(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.salonId) {
+      toast.error("Veuillez sélectionner un salon")
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -67,6 +111,41 @@ export default function NewServicePage() {
     setFormData(prev => ({ ...prev, features }))
   }
 
+  if (!user) {
+    return null
+  }
+
+  if (loadingSalons) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (salons.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Aucun salon trouvé
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Vous devez d&apos;abord créer un salon avant d&apos;ajouter des services
+              </p>
+              <Button onClick={() => router.push("/dashboard/salons/create")}>
+                Créer un salon
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Button
@@ -87,6 +166,24 @@ export default function NewServicePage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="salon">Salon</Label>
+              <Select
+                value={formData.salonId}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, salonId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez un salon" />
+                </SelectTrigger>
+                <SelectContent>
+                  {salons.map((salon) => (
+                    <SelectItem key={salon.id} value={salon.id}>
+                      {salon.name} - {salon.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Nom du service</Label>
               <Input
@@ -112,14 +209,17 @@ export default function NewServicePage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Prix (€)</Label>
+                <Label htmlFor="price">Prix (FCFA)</Label>
                 <Input
                   id="price"
                   type="number"
                   min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
+                  step="1"
+                  value={formData.price || ""}
+                  onChange={(e) => {
+                    const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
+                    setFormData(prev => ({ ...prev, price: isNaN(value) ? 0 : value }))
+                  }}
                   required
                 />
               </div>
@@ -131,8 +231,11 @@ export default function NewServicePage() {
                   type="number"
                   min="15"
                   step="15"
-                  value={formData.duration}
-                  onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                  value={formData.duration || ""}
+                  onChange={(e) => {
+                    const value = e.target.value === "" ? 30 : parseInt(e.target.value)
+                    setFormData(prev => ({ ...prev, duration: isNaN(value) ? 30 : value }))
+                  }}
                   required
                 />
               </div>

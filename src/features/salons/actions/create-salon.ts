@@ -11,8 +11,8 @@ const createSalonSchema = z.object({
   address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères"),
   city: z.string().min(2, "La ville doit contenir au moins 2 caractères"),
   phone: z.string().regex(/^\+?[\d\s-()]+$/, "Numéro de téléphone invalide"),
-  email: z.string().email("Email invalide").optional(),
-  imageUrl: z.string().url("URL d'image invalide").optional(),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  imageUrl: z.string().url("URL d'image invalide").optional().or(z.literal("")),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
 })
@@ -30,10 +30,18 @@ export async function createSalon(data: z.infer<typeof createSalonSchema>) {
     // Valider les données
     const validatedData = createSalonSchema.parse(data)
 
+    // Nettoyer les champs optionnels vides
+    const cleanData = {
+      ...validatedData,
+      email: validatedData.email === "" ? null : validatedData.email,
+      imageUrl: validatedData.imageUrl === "" ? null : validatedData.imageUrl,
+      description: validatedData.description === "" ? null : validatedData.description,
+    }
+
     // Créer le salon
     const salon = await prisma.salon.create({
       data: {
-        ...validatedData,
+        ...cleanData,
         ownerId: user.id,
         isActive: true,
       },

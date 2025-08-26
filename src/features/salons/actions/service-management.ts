@@ -50,7 +50,7 @@ export async function createService(data: z.infer<typeof createServiceSchema>) {
     revalidatePath(`/salons/${validatedData.salonId}`)
     revalidatePath("/dashboard")
 
-    return { success: true, service }
+    return { success: true, service, message: "Service créé avec succès" }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { 
@@ -66,6 +66,12 @@ export async function createService(data: z.infer<typeof createServiceSchema>) {
       error: "Une erreur est survenue lors de la création du service" 
     }
   }
+}
+
+// Version avec salonId séparé pour la page des services du salon
+export async function createSalonService(salonId: string, data: Omit<z.infer<typeof createServiceSchema>, 'salonId'>) {
+  const serviceData = { ...data, salonId }
+  return createService(serviceData)
 }
 
 export async function updateService(data: z.infer<typeof updateServiceSchema>) {
@@ -104,7 +110,7 @@ export async function updateService(data: z.infer<typeof updateServiceSchema>) {
     revalidatePath(`/salons/${service.salonId}`)
     revalidatePath("/dashboard")
 
-    return { success: true, service: updatedService }
+    return { success: true, service: updatedService, message: "Service mis à jour avec succès" }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { 
@@ -120,6 +126,12 @@ export async function updateService(data: z.infer<typeof updateServiceSchema>) {
       error: "Une erreur est survenue lors de la mise à jour du service" 
     }
   }
+}
+
+// Version avec serviceId séparé pour la page des services du salon
+export async function updateSalonService(serviceId: string, data: Omit<z.infer<typeof updateServiceSchema>, 'id'>) {
+  const serviceData = { ...data, id: serviceId }
+  return updateService(serviceData)
 }
 
 export async function deleteService(serviceId: string) {

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server"
+import { headers } from "next/headers"
 import { auth } from "@/lib/better-auth"
 
 export interface SessionUser {
@@ -42,8 +43,9 @@ export async function getAuthSession(request?: NextRequest): Promise<AuthSession
 // Pour les server actions (sans paramètres)
 export async function getAuthSessionServer(): Promise<AuthSession | null> {
   try {
+    const headersList = await headers()
     const session = await auth.api.getSession({
-      headers: new Headers(),
+      headers: headersList,
     })
     
     if (!session) {

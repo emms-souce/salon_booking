@@ -13,6 +13,13 @@ import { BookingForm } from "./booking-form"
 import { Service } from "@/features/services/types"
 import { CheckCircle } from "lucide-react"
 
+interface BookingDetails {
+  id: string
+  date: string | Date
+  startTime: string | Date
+  endTime?: string | Date
+}
+
 interface BookingModalProps {
   salonId: string
   service: Service | null
@@ -22,9 +29,33 @@ interface BookingModalProps {
 
 export function BookingModal({ salonId, service, isOpen, onClose }: BookingModalProps) {
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
-  const [bookingDetails, setBookingDetails] = useState<any>(null)
+  const [bookingDetails, setBookingDetails] = useState<BookingDetails | null>(null)
 
-  const handleBookingSuccess = (booking: any) => {
+  // Fonction pour formater l'heure de manière plus lisible
+  const formatTime = (timeValue: string | Date) => {
+    if (!timeValue) {
+      return 'Heure à confirmer'
+    }
+    
+    let timeString: string
+    if (timeValue instanceof Date) {
+      timeString = timeValue.toTimeString().slice(0, 5)
+    } else {
+      timeString = timeValue
+    }
+    
+    if (timeString === '00:00') {
+      return 'Heure à confirmer'
+    }
+    
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours)
+    const min = minutes || '00'
+    
+    return `${hour}h${min !== '00' ? min : ''}`
+  }
+
+  const handleBookingSuccess = (booking: BookingDetails) => {
     setBookingDetails(booking)
     setBookingConfirmed(true)
   }
@@ -66,9 +97,15 @@ export function BookingModal({ salonId, service, isOpen, onClose }: BookingModal
                   Votre réservation pour {service.name} est confirmée.
                 </p>
                 {bookingDetails && (
-                  <div className="text-sm text-muted-foreground">
-                    <p>Date: {new Date(bookingDetails.date).toLocaleDateString('fr-FR')}</p>
-                    <p>Heure: {bookingDetails.startTime}</p>
+                  <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
+                    <p className="font-medium">Détail de votre réservation :</p>
+                    <p>📅 Date: {new Date(bookingDetails.date).toLocaleDateString('fr-FR', {
+                      weekday: 'long',
+                      day: 'numeric', 
+                      month: 'long',
+                      year: 'numeric'
+                    })}</p>
+                    <p>🕰️ Heure: {formatTime(bookingDetails.startTime)}</p>
                   </div>
                 )}
               </div>
