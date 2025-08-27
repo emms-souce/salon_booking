@@ -123,8 +123,10 @@ class BookingService {
     serviceId: string,
     date: string
   ): Promise<AvailabilityResponse> {
+    console.log(`Vérification de disponibilité pour salon: ${salonId}, service: ${serviceId}, date: ${date}`);
+    
     const response = await fetch(
-      `/api/bookings/availability?salonId=${salonId}&serviceId=${serviceId}&date=${date}`,
+      `/api/bookings/availability?salonId=${encodeURIComponent(salonId)}&serviceId=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(date)}`,
       {
         method: "GET",
         headers: {
@@ -134,8 +136,24 @@ class BookingService {
     )
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || "Erreur lors de la vérification de la disponibilité")
+      const error = await response.json().catch(() => ({ error: "Erreur de communication" }));
+      console.error("Erreur API disponibilité:", {
+        status: response.status,
+        statusText: response.statusText,
+        error
+      });
+      
+      // Messages d'erreur plus spécifiques selon le statut
+      switch (response.status) {
+        case 400:
+          throw new Error(error.error || "Paramètres de recherche invalides")
+        case 404:
+          throw new Error("Service ou salon non trouvé")
+        case 500:
+          throw new Error("Erreur serveur lors de la vérification de disponibilité")
+        default:
+          throw new Error(error.error || "Erreur lors de la vérification de la disponibilité")
+      }
     }
 
     return response.json()

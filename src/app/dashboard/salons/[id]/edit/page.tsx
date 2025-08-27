@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useState, useEffect, use } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/features/auth/hooks/useAuth"
@@ -26,11 +26,10 @@ const salonSchema = z.object({
 
 type SalonFormData = z.infer<typeof salonSchema>
 
-export default function EditSalonPage() {
+export default function EditSalonPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: salonId } = use(params);
   const { user } = useAuth()
   const router = useRouter()
-  const params = useParams()
-  const salonId = params.id as string
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -220,7 +219,7 @@ export default function EditSalonPage() {
               </div>
 
               <div>
-                <Label htmlFor="imageUrl">URL de l'image (optionnel)</Label>
+                <Label htmlFor="imageUrl">URL de l&apos;image (optionnel)</Label>
                 <Input
                   id="imageUrl"
                   type="url"

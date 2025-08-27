@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/features/services/components/ServiceCard";
 import { BookingModal } from "@/features/bookings/components/booking-modal";
-import { Service, ServiceCategory } from "@/features/services/types";
+import { Service,  } from "@/features/services/types";
 
 // Données de démonstration
 const salonData: {
@@ -118,8 +118,9 @@ const salonData: {
   ]
 };
 
-export default function SalonDetailPage({ params }: { params: { id: string } }) {
-  const [selectedService, setSelectedService] = useState<any | null>(null);
+export default function SalonDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   return (
@@ -178,9 +179,13 @@ export default function SalonDetailPage({ params }: { params: { id: string } }) 
                         service={{
                           ...service,
                           image: `/placeholder-service-${service.id}.jpg`,
-                          features: [`${service.duration} min`, service.category]
+                          features: [`${service.duration} min`, service.category],
+                          salon: {
+                            name: salonData.name,
+                            city: salonData.city,
+                            rating: salonData.rating
+                          }
                         }}
-                        salonId={params.id}
                       />
                     ))}
                   </div>
@@ -190,7 +195,7 @@ export default function SalonDetailPage({ params }: { params: { id: string } }) 
               {/* Opening Hours */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Horaires d'ouverture</CardTitle>
+                  <CardTitle>Horaires d&apos;ouverture</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -253,7 +258,7 @@ export default function SalonDetailPage({ params }: { params: { id: string } }) 
       </div>
 
       <BookingModal
-        salonId={params.id}
+        salonId={id}
         service={selectedService}
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useState, useEffect, use } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,11 +47,10 @@ interface Service {
   createdAt: Date
 }
 
-export default function SalonServicesPage() {
+export default function SalonServicesPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: salonId } = use(params);
   const { user } = useAuth()
   const router = useRouter()
-  const params = useParams()
-  const salonId = params.id as string
   
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)

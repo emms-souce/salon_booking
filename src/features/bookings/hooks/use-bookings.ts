@@ -110,13 +110,30 @@ export function useBookings(options: UseBookingsOptions = {}) {
     serviceId: string,
     date: string
   ) => {
+    // Validation des paramètres avant l'appel API
+    if (!salonId || !serviceId || !date) {
+      console.error("Paramètres manquants pour checkAvailability:", { salonId, serviceId, date });
+      toast.error("Paramètres de recherche manquants");
+      return [];
+    }
+    
     try {
       const response = await bookingService.checkAvailability(salonId, serviceId, date)
       setAvailability(response.availableSlots)
+      console.log(`${response.availableSlots.length} créneaux disponibles trouvés`);
       return response.availableSlots
     } catch (error) {
-      console.error("Erreur lors de la vérification de la disponibilité:", error)
-      toast.error("Impossible de vérifier la disponibilité")
+      console.error("Erreur lors de la vérification de la disponibilité:", {
+        error: error instanceof Error ? error.message : error,
+        salonId,
+        serviceId,
+        date
+      });
+      
+      // Afficher le message d'erreur spécifique de l'API
+      const errorMessage = error instanceof Error ? error.message : "Impossible de vérifier la disponibilité";
+      toast.error(errorMessage);
+      
       return []
     }
   }, [])

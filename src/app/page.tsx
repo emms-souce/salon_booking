@@ -151,7 +151,10 @@ export default function HomePage() {
               ))}
             </div>
 
-            <DashboardButton />
+            <div className="mt-8">
+            <DashboardButton  />
+            </div>
+
             
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button 

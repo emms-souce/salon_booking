@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { z, ZodError } from "zod"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 
 const registerSchema = z.object({
@@ -40,26 +40,40 @@ export async function POST(request: NextRequest) {
     // Hashage du mot de passe
     const hashedPassword = await bcrypt.hash(validatedData.password, 12)
     
-    // Créer l'utilisateur
-    const user = await prisma.user.create({
-      data: {
-        name: validatedData.name,
-        email: validatedData.email,
-        password: hashedPassword,
-        phone: validatedData.phone,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-      }
+    // Créer l'utilisateur avec un compte associé en utilisant une transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Créer l'utilisateur
+      const user = await tx.user.create({
+        data: {
+          name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          createdAt: true,
+        }
+      })
+      
+      // Créer le compte associé avec le mot de passe
+      await tx.account.create({
+        data: {
+          accountId: user.id,
+          providerId: "credential",
+          userId: user.id,
+          password: hashedPassword,
+        }
+      })
+      
+      return user
     })
     
     return NextResponse.json(
-      { message: "Utilisateur créé avec succès", user },
+      { message: "Utilisateur créé avec succès", user: result },
       { status: 201 }
     )
     

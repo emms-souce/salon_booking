@@ -99,14 +99,26 @@ export function BookingForm({ salonId, service, onSuccess, onCancel }: BookingFo
   const selectedDateValue = form.watch("date")
 
   useEffect(() => {
-    if (selectedDateValue) {
+    if (selectedDateValue && salonId && service?.id) {
+      console.log("Vérification de disponibilité pour:", {
+        salonId,
+        serviceId: service.id,
+        date: format(selectedDateValue, "yyyy-MM-dd")
+      });
+      
       checkAvailability(
         salonId,
         service.id,
         format(selectedDateValue, "yyyy-MM-dd")
       )
+    } else {
+      console.log("Paramètres manquants pour checkAvailability:", {
+        selectedDateValue: !!selectedDateValue,
+        salonId: !!salonId,
+        serviceId: !!service?.id
+      });
     }
-  }, [selectedDateValue, salonId, service.id, checkAvailability])
+  }, [selectedDateValue, salonId, service?.id, checkAvailability])
 
   const onSubmit = async (data: BookingFormValues) => {
     if (!data.date) return

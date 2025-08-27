@@ -3,13 +3,13 @@
 import { useState } from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Clock, MapPin, User, Calendar, X, Check, AlertCircle } from "lucide-react"
+import { Clock, MapPin, Calendar, X, Check, Plus,   } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useBookings } from "@/features/bookings/hooks/use-bookings"
-import { useAuth } from "@/features/auth/hooks/useAuth"
+import Link from "next/link"
 
 interface BookingWithDetails {
   id: string
@@ -33,7 +33,6 @@ interface BookingWithDetails {
 }
 
 export default function BookingsDashboard() {
-  const { user } = useAuth()
   const { bookings, loading, updateBookingStatus, cancelBooking, fetchBookings } = useBookings()
   const [activeTab, setActiveTab] = useState("upcoming")
 
@@ -213,12 +212,35 @@ export default function BookingsDashboard() {
   if (bookings.length === 0) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Mes Réservations</h1>
+              <p className="text-muted-foreground">
+                Gérez toutes vos réservations en un seul endroit
+              </p>
+            </div>
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Link href="/salons">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle réservation
+              </Link>
+            </Button>
+          </div>
+        </div>
+        
+        <div className="text-center py-12">
+          <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">Aucune réservation</h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-6">
             Vous n&apos;avez aucune réservation pour le moment.
           </p>
+          <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Link href="/salons">
+              <Plus className="h-4 w-4 mr-2" />
+              Réserver maintenant
+            </Link>
+          </Button>
         </div>
       </div>
     )
@@ -234,13 +256,21 @@ export default function BookingsDashboard() {
               Gérez toutes vos réservations en un seul endroit
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={fetchBookings}
-            disabled={loading}
-          >
-            {loading ? "Chargement..." : "Actualiser"}
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Link href="/salons">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle réservation
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={fetchBookings}
+              disabled={loading}
+            >
+              {loading ? "Chargement..." : "Actualiser"}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -261,7 +291,13 @@ export default function BookingsDashboard() {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Aucune réservation à venir</p>
+              <p className="text-muted-foreground mb-4">Aucune réservation à venir</p>
+              <Button asChild variant="outline">
+                <Link href="/salons">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Faire une réservation
+                </Link>
+              </Button>
             </div>
           )}
         </TabsContent>

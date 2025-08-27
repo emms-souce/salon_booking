@@ -13,15 +13,6 @@ declare module "better-auth" {
       updatedAt: Date;
     };
   }
-  
-  export interface User extends PrismaUser {}
-}
-
-// Global type augmentation
-declare global {
-  namespace BetterAuth {
-    interface User extends PrismaUser {}
-  }
 }
 
 export {}

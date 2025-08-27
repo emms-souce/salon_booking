@@ -4,14 +4,13 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent,  } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { getUserSalons, updateSalonStatus } from "@/features/salons/actions/create-salon"
-import { getSalonServices } from "@/features/salons/actions/service-management"
 import { toast } from "sonner"
-import { Plus, Settings, Eye, EyeOff, Edit, PlusCircle } from "lucide-react"
+import { Plus, Settings, Eye, Edit, PlusCircle } from "lucide-react"
 import Image from "next/image"
 
 interface Salon {
@@ -43,7 +42,6 @@ export default function DashboardSalonsPage() {
   const [salons, setSalons] = useState<Salon[]>([])
   const [loading, setLoading] = useState(true)
 
-  const router = useRouter()
 
   useEffect(() => {
     if (user) {

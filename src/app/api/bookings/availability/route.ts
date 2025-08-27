@@ -32,18 +32,53 @@ export async function GET(request: NextRequest) {
       date
     })
 
-    // Récupérer le service pour connaître la durée
-    const service = await prisma.service.findUnique({
-      where: { id: validatedData.serviceId },
-      select: { duration: true }
+    // Récupérer le service pour connaître la durée et vérifier qu'il appartient au salon
+    console.log(`Recherche du service ${validatedData.serviceId} pour le salon ${validatedData.salonId}`);
+    
+    const service = await prisma.service.findFirst({
+      where: { 
+        id: validatedData.serviceId,
+        salonId: validatedData.salonId,
+        isActive: true
+      },
+      select: { 
+        duration: true,
+        name: true,
+        salonId: true
+      }
     })
 
     if (!service) {
+      console.log(`Service non trouvé ou inactif. ServiceId: ${validatedData.serviceId}, SalonId: ${validatedData.salonId}`);
+      
+      // Vérifier si le service existe mais n'appartient pas au salon
+      const serviceExists = await prisma.service.findUnique({
+        where: { id: validatedData.serviceId },
+        select: { salonId: true, isActive: true, name: true }
+      });
+      
+      if (serviceExists) {
+        if (!serviceExists.isActive) {
+          return NextResponse.json(
+            { error: "Ce service n'est plus disponible" },
+            { status: 400 }
+          )
+        }
+        if (serviceExists.salonId !== validatedData.salonId) {
+          return NextResponse.json(
+            { error: "Ce service n'appartient pas au salon spécifié" },
+            { status: 400 }
+          )
+        }
+      }
+      
       return NextResponse.json(
         { error: "Service non trouvé" },
         { status: 404 }
       )
     }
+    
+    console.log(`Service trouvé: ${service.name}, durée: ${service.duration} minutes`);
 
     // Date de la réservation
     const bookingDate = new Date(validatedData.date)
@@ -125,13 +160,21 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log("Erreur de validation Zod:", error.issues);
       return NextResponse.json(
         { error: "Paramètres invalides", details: error.issues },
         { status: 400 }
       )
     }
 
-    console.error("Erreur lors de la vérification de la disponibilité:", error)
+    console.error("Erreur lors de la vérification de la disponibilité:", {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      salonId: new URL(request.url).searchParams.get("salonId"),
+      serviceId: new URL(request.url).searchParams.get("serviceId"),
+      date: new URL(request.url).searchParams.get("date")
+    });
+    
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }

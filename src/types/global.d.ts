@@ -3,7 +3,7 @@ import type { User as PrismaUser } from "@prisma/client";
 
 declare global {
   namespace BetterAuth {
-    interface User extends PrismaUser {}
+    type User = PrismaUser
   }
 }
 

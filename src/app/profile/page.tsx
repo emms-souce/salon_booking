@@ -1,24 +1,33 @@
 "use client"
 
-import { useState } from "react"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
-import { Loader2, User, Mail, Phone, MapPin, Calendar } from "lucide-react"
 import { ProfileForm } from "@/features/profile/components/ProfileForm"
 import { ProfilePictureUpload } from "@/features/profile/components/ProfilePictureUpload"
 
+// Type étendu pour l'utilisateur avec les propriétés optionnelles
+type ExtendedUser = {
+  id: string
+  name?: string | null
+  email: string
+  image?: string | null
+  phone?: string | null
+  bio?: string | null
+  address?: string | null
+  createdAt: Date
+}
+
 export default function ProfilePage() {
   const { user, updateProfile } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
+  
+  // Cast de l'utilisateur vers le type étendu
+  const extendedUser = user as ExtendedUser | null
 
-  if (!user) {
+  if (!extendedUser) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
@@ -54,7 +63,7 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent>
                 <ProfilePictureUpload 
-                  currentImage={user.image} 
+                  currentImage={extendedUser.image} 
                   onUploadComplete={(url) => updateProfile({ image: url })}
                 />
               </CardContent>
@@ -69,12 +78,12 @@ export default function ProfilePage() {
               <CardContent>
                 <ProfileForm 
                   user={{
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    phone: (user as any).phone,
-                    bio: (user as any).bio,
-                    address: (user as any).address,
+                    id: extendedUser.id,
+                    name: extendedUser.name,
+                    email: extendedUser.email,
+                    phone: extendedUser.phone,
+                    bio: extendedUser.bio,
+                    address: extendedUser.address,
                   }}
                   onSave={async (data) => {
                     await updateProfile(data)
@@ -93,25 +102,25 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium">Email:</span>
-                <p>{user.email}</p>
+                <p>{extendedUser.email}</p>
               </div>
               <div>
                 <span className="font-medium">Téléphone:</span>
-                <p>{(user as any).phone || "Non renseigné"}</p>
+                <p>{extendedUser.phone || "Non renseigné"}</p>
               </div>
               <div>
                 <span className="font-medium">Membre depuis:</span>
-                <p>{new Date((user as any).createdAt).toLocaleDateString('fr-FR')}</p>
+                <p>{new Date(extendedUser.createdAt).toLocaleDateString('fr-FR')}</p>
               </div>
               <div>
                 <span className="font-medium">Adresse:</span>
-                <p>{(user as any).address || "Non renseignée"}</p>
+                <p>{extendedUser.address || "Non renseignée"}</p>
               </div>
             </div>
-            {(user as any).bio && (
+            {extendedUser.bio && (
               <div>
                 <span className="font-medium">Bio:</span>
-                <p className="text-sm text-gray-600 mt-1">{(user as any).bio}</p>
+                <p className="text-sm text-gray-600 mt-1">{extendedUser.bio}</p>
               </div>
             )}
           </CardContent>
@@ -166,7 +175,7 @@ export default function ProfilePage() {
                   Modifier le mot de passe
                 </Button>
                 <Button variant="outline" className="w-full">
-                  Activer l'authentification à deux facteurs
+                  Activer l&apos;authentification à deux facteurs
                 </Button>
               </CardContent>
             </Card>

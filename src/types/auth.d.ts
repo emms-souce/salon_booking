@@ -16,8 +16,6 @@ declare module "better-auth" {
       updatedAt: Date;
     };
   }
-  
-  interface User extends PrismaUser {}
 }
 
 // Type helper for session
@@ -25,9 +23,9 @@ export type AuthUser = PrismaUser;
 
 // Type guard for authenticated sessions
 export function isAuthenticatedSession(
-  session: any
+  session: unknown
 ): session is { user: PrismaUser } {
-  return session?.user?.id !== undefined;
+  return (session as { user?: { id?: string } })?.user?.id !== undefined;
 }
 
 export type AuthenticatedSession = {

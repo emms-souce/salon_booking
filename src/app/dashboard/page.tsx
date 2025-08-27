@@ -13,18 +13,13 @@ import {
   Star, 
   Scissors, 
   Store, 
-  Users, 
   TrendingUp, 
   Plus,
   MapPin,
-  Phone,
-  Mail,
   Award,
   Target,
   Activity,
   ChevronRight,
-  Eye,
-  Edit,
   BarChart3
 } from "lucide-react"
 import { useAuth } from "@/features/auth/hooks/useAuth"

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/better-auth"
 import { prisma } from "@/lib/prisma"
 import { getAuthSession } from "@/lib/auth-helpers"
 

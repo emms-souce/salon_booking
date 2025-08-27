@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, use } from "react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Clock, MapPin, User, Calendar, X, Check, AlertCircle } from "lucide-react"
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useBookings } from "@/features/bookings/hooks/use-bookings"
-import { useParams } from "next/navigation"
 
 interface BookingWithDetails {
   id: string
@@ -28,9 +27,8 @@ interface BookingWithDetails {
   }
 }
 
-export default function SalonBookingsPage() {
-  const params = useParams()
-  const salonId = params.id as string
+export default function SalonBookingsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: salonId } = use(params);
   const { bookings, loading, updateBookingStatus } = useBookings({ salonId })
   const [activeTab, setActiveTab] = useState("pending")
 

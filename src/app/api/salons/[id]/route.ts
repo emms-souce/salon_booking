@@ -4,10 +4,10 @@ import { getAuthSession } from "@/lib/auth-helpers"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const salonId = params.id
+    const { id: salonId } = await params;
 
     const salon = await prisma.salon.findUnique({
       where: { 

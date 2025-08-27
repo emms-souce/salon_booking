@@ -4,6 +4,10 @@ trigger: manual
 
 # Règles de Développement - Salon Cameroun Coiffure
 
+## Objectif du Projet 
+- evite les erreur de build 
+- supprime les elements et les imports aui ne sont pas utilisé
+
 ## Architecture et Organisation du Code
 
 ### Structure du Projet
